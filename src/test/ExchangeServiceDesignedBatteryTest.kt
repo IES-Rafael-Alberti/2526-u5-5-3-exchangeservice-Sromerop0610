@@ -110,4 +110,24 @@ class ExchangeServiceDesignedBatteryTest : DescribeSpec({
             provider.rate("USDJPY")
         }
     }
+    it("tries a second intermediate currency if the first one fails") {
+        val provider = mockk<ExchangeRateProvider>()
+
+        every { provider.rate("GBPJPY") } throws IllegalArgumentException()
+
+        every { provider.rate("GBPEUR") } returns 1.1
+        every { provider.rate("EURJPY") } throws IllegalArgumentException()
+
+        every { provider.rate("GBPUSD") } returns 1.2
+        every { provider.rate("USDJPY") } returns 150.0
+
+        val service = ExchangeService(
+            provider,
+            supportedCurrencies = setOf("USD", "EUR", "GBP", "JPY")
+        )
+
+        val result = service.exchange(Money(2, "GBP"), "JPY")
+
+        result shouldBe (2 * 1.2 * 150.0).toLong()
+    }
 })
