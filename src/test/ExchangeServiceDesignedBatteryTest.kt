@@ -50,6 +50,23 @@ class ExchangeServiceDesignedBatteryTest : DescribeSpec({
                     service.exchange(Money(100, "USD"), "EURO")
                 }
             }
+        }
+        describe("same currency") {
 
-       //..
-}})
+            it("returns the same amount and does not call the provider") {
+                val realProvider = InMemoryExchangeRateProvider(
+                    mapOf("USDEUR" to 0.92)
+                )
+                val spy = spyk(realProvider)
+
+                val service = ExchangeService(spy)
+
+                val result = service.exchange(Money(1000, "USD"), "USD")
+
+                result shouldBe 1000
+
+                verify(exactly = 0) { spy.rate(any()) }
+                confirmVerified(spy)
+            }
+        }
+    })
