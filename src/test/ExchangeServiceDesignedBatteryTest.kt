@@ -88,4 +88,26 @@ class ExchangeServiceDesignedBatteryTest : DescribeSpec({
             confirmVerified(provider)
         }
     }
+}
+        describe("cross conversion") {
+
+    it("uses an intermediate currency when direct rate is missing") {
+        val provider = mockk<ExchangeRateProvider>()
+
+        every { provider.rate("GBPJPY") } throws IllegalArgumentException()
+        every { provider.rate("GBPUSD") } returns 1.2
+        every { provider.rate("USDJPY") } returns 150.0
+
+        val service = ExchangeService(provider)
+
+        val result = service.exchange(Money(2, "GBP"), "JPY")
+
+        result shouldBe (2 * 1.2 * 150.0).toLong()
+
+        verifySequence {
+            provider.rate("GBPJPY")
+            provider.rate("GBPUSD")
+            provider.rate("USDJPY")
+        }
+    }
 })
