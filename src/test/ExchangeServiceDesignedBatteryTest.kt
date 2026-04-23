@@ -51,6 +51,7 @@ class ExchangeServiceDesignedBatteryTest : DescribeSpec({
                 }
             }
         }
+
         describe("same currency") {
 
             it("returns the same amount and does not call the provider") {
@@ -69,4 +70,22 @@ class ExchangeServiceDesignedBatteryTest : DescribeSpec({
                 confirmVerified(spy)
             }
         }
-    })
+    }
+    describe("direct rate") {
+
+        it("converts correctly using a direct rate") {
+            val provider = mockk<ExchangeRateProvider>()
+
+            every { provider.rate("USDEUR") } returns 0.92
+
+            val service = ExchangeService(provider)
+
+            val result = service.exchange(Money(1000, "USD"), "EUR")
+
+            result shouldBe 920
+
+            verify(exactly = 1) { provider.rate("USDEUR") }
+            confirmVerified(provider)
+        }
+    }
+})
