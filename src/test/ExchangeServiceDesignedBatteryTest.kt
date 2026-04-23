@@ -110,6 +110,20 @@ class ExchangeServiceDesignedBatteryTest : DescribeSpec({
             provider.rate("USDJPY")
         }
     }
+    it("throws an exception when no conversion path exists") {
+        val provider = mockk<ExchangeRateProvider>()
+
+        every { provider.rate(any()) } throws IllegalArgumentException()
+
+        val service = ExchangeService(
+            provider,
+            supportedCurrencies = setOf("USD", "EUR", "GBP", "JPY")
+        )
+
+        shouldThrow<IllegalArgumentException> {
+            service.exchange(Money(2, "GBP"), "JPY")
+        }
+    }
     it("tries a second intermediate currency if the first one fails") {
         val provider = mockk<ExchangeRateProvider>()
 
