@@ -411,6 +411,31 @@ Identifica **al menos 3 casos de prueba de tu batería** y explica:
 
 Incluye enlaces a los tests correspondientes.
 
+**Caso 1: validación de cantidad negativa**
+https://github.com/IES-Rafael-Alberti/2526-u5-5-3-exchangeservice-Sromerop0610/blob/06817a28cb2a83f85f896406bab1dcff3de0234b/src/test/ExchangeServiceDesignedBatteryTest.kt#L36
+* Clase de equivalencia: **inválida**
+* Condición: validación de entrada (cantidad)
+* Representatividad: asegura que el sistema rechaza datos no válidos antes de cualquier lógica de conversión
+
+---
+
+**Caso 2: conversión directa con tasa válida**
+https://github.com/IES-Rafael-Alberti/2526-u5-5-3-exchangeservice-Sromerop0610/blob/06817a28cb2a83f85f896406bab1dcff3de0234b/src/test/ExchangeServiceDesignedBatteryTest.kt#L76
+
+* Clase de equivalencia: **válida**
+* Condición: uso de tasa directa (A → B)
+* Representatividad: caso más común de uso del sistema
+
+---
+
+**Caso 3: conversión cruzada con ruta intermedia**
+https://github.com/IES-Rafael-Alberti/2526-u5-5-3-exchangeservice-Sromerop0610/blob/06817a28cb2a83f85f896406bab1dcff3de0234b/src/test/ExchangeServiceDesignedBatteryTest.kt#L94
+
+* Clase de equivalencia: **válida**
+* Condición: ausencia de tasa directa pero existencia de ruta A → C → B
+* Representatividad: valida la lógica principal de fallback del sistema
+
+---
 
 #### 🔹 2) CE f) Se han efectuado pruebas unitarias de clases y funciones
 
@@ -426,6 +451,29 @@ Justifica por qué este test cumple con el concepto de prueba unitaria según el
 
 Incluye enlace al test.
 
+Test analizado: conversión directa
+
+https://github.com/IES-Rafael-Alberti/2526-u5-5-3-exchangeservice-Sromerop0610/blob/06817a28cb2a83f85f896406bab1dcff3de0234b/src/test/ExchangeServiceDesignedBatteryTest.kt#L76
+
+Este test es una **prueba unitaria del método `ExchangeService.exchange()`**.
+
+* Método probado: `exchange()`
+* Aislamiento:
+
+    * Se sustituye `ExchangeRateProvider` por un **stub con MockK**
+    * No depende de `InMemoryExchangeRateProvider` ni de fuentes externas
+* Entrada:
+
+    * `Money(1000, "USD")`, destino `"EUR"`
+* Salida esperada:
+
+    * `920`
+
+Es una prueba unitaria porque:
+
+* prueba una sola unidad de lógica
+* no depende de infraestructura real
+* usa un doble de prueba controlado
 
 #### 🔹 3) CE g) Se han implementado pruebas automáticas
 
@@ -442,6 +490,38 @@ Incluye enlace a:
 * configuración (build.gradle.kts o similar)
 * ejecución de tests
 
+Las pruebas se ejecutan automáticamente mediante:
+
+* **Kotest** como framework de testing
+* **Gradle** como sistema de construcción
+
+### Ejecución
+
+Las pruebas se ejecutan con:
+
+```bash
+./gradlew test
+```
+
+o desde IntelliJ con:
+
+* Run All Tests
+
+---
+
+### Automatización
+
+* Cada test se ejecuta sin intervención manual
+* Las aserciones (`shouldBe`, `shouldThrow`) validan resultados automáticamente
+* Si una condición no se cumple, el test falla inmediatamente
+
+---
+
+### Evidencia
+
+* Fallos de tests interrumpen la build
+* Resultados visibles en consola Gradle
+* Integración con Kotest reporting
 
 #### 🔹 4) CE h) Se han documentado las incidencias detectadas
 
@@ -457,6 +537,35 @@ Relaciona esto con la importancia de documentar incidencias en el proceso de pru
 
 Incluye enlace al test implicado.
 
+Incidencia detectada
+
+Durante el desarrollo de la batería de pruebas se detectó el siguiente problema:
+
+https://github.com/IES-Rafael-Alberti/2526-u5-5-3-exchangeservice-Sromerop0610/blob/06817a28cb2a83f85f896406bab1dcff3de0234b/src/test/ExchangeServiceDesignedBatteryTest.kt#L127
+
+### Problema observado
+
+Inicialmente, el servicio no gestionaba correctamente la conversión cruzada cuando la tasa directa no existía, produciendo una excepción inesperada.
+
+---
+
+### Solución aplicada
+
+Se corrigió la lógica en `ExchangeService` para:
+
+* iterar por monedas intermedias
+* intentar combinaciones A → C → B
+* detenerse al encontrar una ruta válida
+
+---
+
+### Importancia
+
+Esto demuestra que las pruebas:
+
+* detectan fallos de lógica
+* validan comportamiento real del sistema
+* ayudan a refactorizar con seguridad
 
 #### 🔹 5) CE i) Se han utilizado dobles de prueba para aislar los componentes durante las pruebas
 
@@ -472,6 +581,60 @@ Relaciona tu explicación con la necesidad de reducir el acoplamiento en pruebas
 
 Incluye enlaces a los tests donde se utilicen.
 
+### Stub
+
+https://github.com/IES-Rafael-Alberti/2526-u5-5-3-exchangeservice-Sromerop0610/blob/06817a28cb2a83f85f896406bab1dcff3de0234b/src/test/ExchangeServiceDesignedBatteryTest.kt#L76
+
+* Uso: devolver tasa fija (`0.92`)
+* Objetivo: probar cálculo sin depender de lógica compleja del provider
+* Beneficio: test simple y determinista
+
+---
+
+### Spy
+
+https://github.com/IES-Rafael-Alberti/2526-u5-5-3-exchangeservice-Sromerop0610/blob/06817a28cb2a83f85f896406bab1dcff3de0234b/src/test/ExchangeServiceDesignedBatteryTest.kt#L57
+
+* Uso: `spyk(InMemoryExchangeRateProvider)`
+* Objetivo:
+
+    * usar comportamiento real
+    * verificar que NO se llama al provider
+* Beneficio: combina lógica real + verificación de interacción
+
+---
+
+### Mock
+
+https://github.com/IES-Rafael-Alberti/2526-u5-5-3-exchangeservice-Sromerop0610/blob/06817a28cb2a83f85f896406bab1dcff3de0234b/src/test/ExchangeServiceDesignedBatteryTest.kt#L94
+
+* Uso: `mockk<ExchangeRateProvider>()`
+* Objetivo:
+
+    * controlar completamente el flujo
+    * simular fallos y rutas alternativas
+* Beneficio: permite probar escenarios complejos
+
+---
+
+### Problema si no se usan dobles
+
+Si se usara siempre `InMemoryExchangeRateProvider`:
+
+* tests dependientes de datos reales
+* menos control sobre escenarios de error
+* difícil simular rutas alternativas
+* mayor acoplamiento
+
+---
+
+### Conclusión
+
+El uso de dobles permite:
+
+* aislar la lógica de `ExchangeService`
+* controlar escenarios de prueba
+* mejorar estabilidad y mantenibilidad de los tests
 
 ## Fuente conceptual
 
